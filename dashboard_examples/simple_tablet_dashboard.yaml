@@ -1,0 +1,150 @@
+# Simple Nature Remo Dashboard for 7-10 Inch Tablets
+#
+# This configuration uses only built-in Home Assistant cards
+# No custom cards required - works out of the box!
+#
+# Perfect for:
+# - Quick setup on wall-mounted tablets
+# - Kiosk mode displays
+# - Family-friendly control panels
+
+title: Nature Remo
+views:
+  # Main Control Panel - Single Page View
+  - title: Home
+    path: home
+    icon: mdi:home
+    badges: []
+    cards:
+      # Current Environment Status
+      - type: entities
+        title: 現在の環境
+        show_header_toggle: false
+        state_color: true
+        entities:
+          - entity: sensor.living_room_temperature
+            name: 室温
+            icon: mdi:thermometer
+          - entity: sensor.living_room_humidity
+            name: 湿度
+            icon: mdi:water-percent
+          - entity: sensor.living_room_illuminance
+            name: 明るさ
+            icon: mdi:brightness-6
+          - entity: sensor.living_room_motion
+            name: 人感センサー
+            icon: mdi:motion-sensor
+
+      # Air Conditioner Controls
+      - type: entities
+        title: エアコン
+        show_header_toggle: false
+        state_color: true
+        entities:
+          - entity: climate.living_room_ac
+            type: custom:simple-thermostat
+            name: リビング
+
+      # Quick Climate Presets
+      - type: grid
+        title: クイック設定
+        square: false
+        columns: 3
+        cards:
+          - type: button
+            name: 冷房開始
+            icon: mdi:snowflake
+            tap_action:
+              action: call-service
+              service: script.ac_cool_start
+            hold_action:
+              action: none
+
+          - type: button
+            name: 暖房開始
+            icon: mdi:fire
+            tap_action:
+              action: call-service
+              service: script.ac_heat_start
+            hold_action:
+              action: none
+
+          - type: button
+            name: 停止
+            icon: mdi:power
+            tap_action:
+              action: call-service
+              service: climate.turn_off
+              target:
+                entity_id: climate.living_room_ac
+            hold_action:
+              action: none
+
+      # Lights
+      - type: entities
+        title: 照明
+        show_header_toggle: false
+        state_color: true
+        entities:
+          - entity: light.living_room_light
+            name: リビング
+          - entity: light.bedroom_light
+            name: 寝室
+
+      # Power Monitor (if available)
+      - type: entities
+        title: 電力モニター
+        show_header_toggle: false
+        state_color: true
+        entities:
+          - entity: sensor.smart_meter_power
+            name: 現在の消費電力
+            icon: mdi:flash
+          - entity: sensor.smart_meter_energy
+            name: 本日の使用量
+            icon: mdi:counter
+
+      # Other Devices
+      - type: entities
+        title: その他の機器
+        show_header_toggle: false
+        state_color: true
+        entities:
+          - entity: switch.tv
+            name: テレビ
+          - entity: switch.fan
+            name: 扇風機
+          - entity: remote.living_room_remote
+            name: リモコン
+
+# Required Scripts for Quick Settings
+# Add these to your configuration.yaml or scripts.yaml
+
+# script:
+#   ac_cool_start:
+#     alias: エアコン冷房開始
+#     sequence:
+#       - service: climate.set_hvac_mode
+#         target:
+#           entity_id: climate.living_room_ac
+#         data:
+#           hvac_mode: cool
+#       - service: climate.set_temperature
+#         target:
+#           entity_id: climate.living_room_ac
+#         data:
+#           temperature: 24
+#
+#   ac_heat_start:
+#     alias: エアコン暖房開始
+#     sequence:
+#       - service: climate.set_hvac_mode
+#         target:
+#           entity_id: climate.living_room_ac
+#         data:
+#           hvac_mode: heat
+#       - service: climate.set_temperature
+#         target:
+#           entity_id: climate.living_room_ac
+#         data:
+#           temperature: 22

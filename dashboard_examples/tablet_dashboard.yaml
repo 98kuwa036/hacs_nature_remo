@@ -1,0 +1,363 @@
+# Nature Remo Dashboard Configuration for 7-10 Inch Tablets
+#
+# This configuration provides an optimized layout for small tablet displays,
+# making it easy to monitor and control your Nature Remo devices at a glance.
+#
+# Installation:
+# 1. Copy this file to your Home Assistant configuration
+# 2. Create a new dashboard or edit an existing one
+# 3. Switch to YAML mode and paste the content
+# 4. Adjust entity IDs to match your setup
+
+title: Nature Remo Control
+views:
+  - title: Overview
+    path: overview
+    icon: mdi:home
+    type: sections
+    sections:
+      # Environment Monitoring Section
+      - type: grid
+        title: 環境センサー
+        cards:
+          # Temperature and Humidity Card
+          - type: grid
+            square: false
+            columns: 2
+            cards:
+              - type: statistic
+                entity: sensor.living_room_temperature
+                name: 温度
+                icon: mdi:thermometer
+                period:
+                  calendar:
+                    period: hour
+                stat_type: mean
+
+              - type: statistic
+                entity: sensor.living_room_humidity
+                name: 湿度
+                icon: mdi:water-percent
+                period:
+                  calendar:
+                    period: hour
+                stat_type: mean
+
+          # Illuminance and Motion Card
+          - type: grid
+            square: false
+            columns: 2
+            cards:
+              - type: statistic
+                entity: sensor.living_room_illuminance
+                name: 照度
+                icon: mdi:brightness-6
+                period:
+                  calendar:
+                    period: hour
+                stat_type: mean
+
+              - type: tile
+                entity: sensor.living_room_motion
+                name: 人感センサー
+                icon: mdi:motion-sensor
+                vertical: true
+
+      # Air Conditioner Control Section
+      - type: grid
+        title: エアコン制御
+        cards:
+          - type: thermostat
+            entity: climate.living_room_ac
+            name: リビング
+            features:
+              - type: climate-hvac-modes
+                hvac_modes:
+                  - 'off'
+                  - cool
+                  - heat
+                  - dry
+                  - fan_only
+                  - auto
+              - type: climate-preset-modes
+
+          # Quick AC Control Buttons
+          - type: grid
+            square: false
+            columns: 3
+            cards:
+              - type: button
+                entity: climate.living_room_ac
+                name: 冷房 24°C
+                icon: mdi:snowflake
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: climate.set_temperature
+                  service_data:
+                    entity_id: climate.living_room_ac
+                    temperature: 24
+                    hvac_mode: cool
+
+              - type: button
+                entity: climate.living_room_ac
+                name: 暖房 22°C
+                icon: mdi:fire
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: climate.set_temperature
+                  service_data:
+                    entity_id: climate.living_room_ac
+                    temperature: 22
+                    hvac_mode: heat
+
+              - type: button
+                entity: climate.living_room_ac
+                name: 除湿
+                icon: mdi:water-minus
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: climate.set_hvac_mode
+                  service_data:
+                    entity_id: climate.living_room_ac
+                    hvac_mode: dry
+
+      # Power Monitoring Section (for Smart Meter)
+      - type: grid
+        title: 電力モニター
+        cards:
+          - type: gauge
+            entity: sensor.smart_meter_power
+            name: 現在の消費電力
+            unit: W
+            min: 0
+            max: 6000
+            severity:
+              green: 0
+              yellow: 3000
+              red: 4500
+            needle: true
+
+          - type: statistic
+            entity: sensor.smart_meter_energy
+            name: 累積消費電力
+            icon: mdi:lightning-bolt
+            period:
+              calendar:
+                period: day
+            stat_type: change
+
+          # Energy Usage History Graph
+          - type: custom:mini-graph-card
+            entities:
+              - entity: sensor.smart_meter_power
+                name: 消費電力
+            name: 電力推移
+            hours_to_show: 24
+            points_per_hour: 4
+            line_width: 2
+            animate: true
+            show:
+              fill: fade
+              icon: false
+              name: true
+              state: true
+
+  # Detailed Control View
+  - title: Detailed Control
+    path: control
+    icon: mdi:tune
+    type: sections
+    sections:
+      # All Climate Controls
+      - type: grid
+        title: エアコン詳細設定
+        cards:
+          - type: tile
+            entity: climate.living_room_ac
+            name: リビングエアコン
+            features:
+              - type: climate-hvac-modes
+              - type: target-temperature
+              - type: climate-fan-modes
+
+          - type: tile
+            entity: climate.bedroom_ac
+            name: 寝室エアコン
+            features:
+              - type: climate-hvac-modes
+              - type: target-temperature
+              - type: climate-fan-modes
+
+      # Lights Control
+      - type: grid
+        title: 照明制御
+        cards:
+          - type: tile
+            entity: light.living_room_light
+            name: リビング照明
+            features:
+              - type: light-brightness
+
+          - type: tile
+            entity: light.bedroom_light
+            name: 寝室照明
+            features:
+              - type: light-brightness
+
+      # Other Appliances
+      - type: grid
+        title: その他の機器
+        cards:
+          - type: tile
+            entity: switch.tv
+            name: テレビ
+
+          - type: tile
+            entity: switch.fan
+            name: 扇風機
+
+  # Sensors & Monitoring View
+  - title: Sensors
+    path: sensors
+    icon: mdi:chart-line
+    type: sections
+    sections:
+      # Temperature History
+      - type: grid
+        title: 温度推移
+        cards:
+          - type: custom:mini-graph-card
+            entities:
+              - entity: sensor.living_room_temperature
+                name: リビング
+                color: '#e74c3c'
+              - entity: sensor.bedroom_temperature
+                name: 寝室
+                color: '#3498db'
+            name: 温度
+            hours_to_show: 24
+            points_per_hour: 4
+            line_width: 3
+            animate: true
+            show:
+              fill: fade
+              legend: true
+
+      # Humidity History
+      - type: grid
+        title: 湿度推移
+        cards:
+          - type: custom:mini-graph-card
+            entities:
+              - entity: sensor.living_room_humidity
+                name: リビング
+                color: '#2ecc71'
+              - entity: sensor.bedroom_humidity
+                name: 寝室
+                color: '#9b59b6'
+            name: 湿度
+            hours_to_show: 24
+            points_per_hour: 4
+            line_width: 3
+            animate: true
+            show:
+              fill: fade
+              legend: true
+
+      # Illuminance History
+      - type: grid
+        title: 照度推移
+        cards:
+          - type: custom:mini-graph-card
+            entities:
+              - entity: sensor.living_room_illuminance
+                name: リビング
+                color: '#f39c12'
+            name: 照度
+            hours_to_show: 24
+            points_per_hour: 4
+            line_width: 3
+            animate: true
+            show:
+              fill: fade
+
+  # Compact Status View - Optimized for Wall Tablets
+  - title: Status
+    path: status
+    icon: mdi:monitor-dashboard
+    type: panel
+    badges: []
+    cards:
+      - type: vertical-stack
+        cards:
+          # Top Status Bar - Environment
+          - type: horizontal-stack
+            cards:
+              - type: sensor
+                entity: sensor.living_room_temperature
+                name: 温度
+                graph: line
+
+              - type: sensor
+                entity: sensor.living_room_humidity
+                name: 湿度
+                graph: line
+
+              - type: sensor
+                entity: sensor.living_room_illuminance
+                name: 照度
+                graph: none
+
+          # AC Quick Status
+          - type: glance
+            entities:
+              - entity: climate.living_room_ac
+                name: リビングAC
+              - entity: climate.bedroom_ac
+                name: 寝室AC
+              - entity: light.living_room_light
+                name: リビング照明
+              - entity: light.bedroom_light
+                name: 寝室照明
+            show_state: true
+            show_name: true
+            columns: 4
+
+          # Power Status (if Smart Meter available)
+          - type: horizontal-stack
+            cards:
+              - type: entity
+                entity: sensor.smart_meter_power
+                name: 消費電力
+                icon: mdi:flash
+
+              - type: entity
+                entity: sensor.smart_meter_energy
+                name: 累積電力量
+                icon: mdi:lightning-bolt-outline
+
+# Automation Examples for Dashboard
+# These can enhance the tablet experience
+
+# Example: Auto-brightness adjustment based on illuminance
+# automation:
+#   - alias: "Tablet Brightness Auto Adjust"
+#     trigger:
+#       - platform: state
+#         entity_id: sensor.living_room_illuminance
+#     action:
+#       - service: light.turn_on
+#         target:
+#           entity_id: light.tablet_backlight
+#         data:
+#           brightness: >
+#             {% if states('sensor.living_room_illuminance') | int < 10 %}
+#               50
+#             {% elif states('sensor.living_room_illuminance') | int < 100 %}
+#               100
+#             {% else %}
+#               255
+#             {% endif %}

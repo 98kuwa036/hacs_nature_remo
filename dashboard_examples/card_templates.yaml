@@ -1,0 +1,434 @@
+# Nature Remo カスタムカードテンプレート集
+#
+# これらのカードテンプレートを使用して、視覚的に分かりやすいダッシュボードを作成できます。
+# 各テンプレートは、エンティティIDを変更するだけで使用できます。
+
+# =============================================================================
+# 環境モニターカード - 温度・湿度・照度を一つのカードにまとめて表示
+# =============================================================================
+environment_monitor_card:
+  type: vertical-stack
+  cards:
+    # タイトルカード
+    - type: markdown
+      content: |
+        # 🏠 環境モニター
+        {{ now().strftime('%Y年%m月%d日 %H:%M') }}
+
+    # センサー値の表示
+    - type: glance
+      entities:
+        - entity: sensor.living_room_temperature
+          name: 温度
+        - entity: sensor.living_room_humidity
+          name: 湿度
+        - entity: sensor.living_room_illuminance
+          name: 照度
+      show_state: true
+      columns: 3
+
+    # 快適度インジケーター
+    - type: entities
+      entities:
+        - type: custom:template-entity-row
+          entity: sensor.living_room_temperature
+          name: 温度状態
+          state: "{{ state_attr('sensor.living_room_temperature', 'comfort_level') }}"
+          icon: "{{ state_attr('sensor.living_room_temperature', 'comfort_icon') }}"
+        - type: custom:template-entity-row
+          entity: sensor.living_room_humidity
+          name: 湿度状態
+          state: "{{ state_attr('sensor.living_room_humidity', 'comfort_level') }}"
+          secondary: "{{ state_attr('sensor.living_room_humidity', 'recommendation') }}"
+          icon: "{{ state_attr('sensor.living_room_humidity', 'comfort_icon') }}"
+        - type: custom:template-entity-row
+          entity: sensor.living_room_illuminance
+          name: 明るさ
+          state: "{{ state_attr('sensor.living_room_illuminance', 'brightness_level') }}"
+          icon: "{{ state_attr('sensor.living_room_illuminance', 'brightness_icon') }}"
+
+# =============================================================================
+# シンプル環境カード - カスタムカード不要のシンプル版
+# =============================================================================
+simple_environment_card:
+  type: entities
+  title: 環境センサー
+  show_header_toggle: false
+  state_color: true
+  entities:
+    - entity: sensor.living_room_temperature
+      name: 室温
+      icon: mdi:thermometer
+      secondary_info: last-changed
+    - entity: sensor.living_room_humidity
+      name: 湿度
+      icon: mdi:water-percent
+      secondary_info: last-changed
+    - entity: sensor.living_room_illuminance
+      name: 照度
+      icon: mdi:brightness-6
+      secondary_info: last-changed
+
+# =============================================================================
+# エアコンコントロールカード - 詳細な制御が可能
+# =============================================================================
+ac_control_card:
+  type: vertical-stack
+  cards:
+    # メインサーモスタット
+    - type: thermostat
+      entity: climate.living_room_ac
+      name: リビングエアコン
+      features:
+        - type: climate-hvac-modes
+          hvac_modes:
+            - 'off'
+            - cool
+            - heat
+            - dry
+            - fan_only
+            - auto
+        - type: climate-preset-modes
+        - type: target-temperature
+
+    # クイック設定ボタン
+    - type: horizontal-stack
+      cards:
+        - type: button
+          name: 冷房 24°C
+          icon: mdi:snowflake
+          tap_action:
+            action: call-service
+            service: climate.set_temperature
+            service_data:
+              entity_id: climate.living_room_ac
+              temperature: 24
+              hvac_mode: cool
+          hold_action:
+            action: none
+
+        - type: button
+          name: 暖房 22°C
+          icon: mdi:fire
+          tap_action:
+            action: call-service
+            service: climate.set_temperature
+            service_data:
+              entity_id: climate.living_room_ac
+              temperature: 22
+              hvac_mode: heat
+          hold_action:
+            action: none
+
+        - type: button
+          name: 除湿
+          icon: mdi:water-minus
+          tap_action:
+            action: call-service
+            service: climate.set_hvac_mode
+            service_data:
+              entity_id: climate.living_room_ac
+              hvac_mode: dry
+          hold_action:
+            action: none
+
+        - type: button
+          name: 停止
+          icon: mdi:power
+          tap_action:
+            action: call-service
+            service: climate.turn_off
+            target:
+              entity_id: climate.living_room_ac
+          hold_action:
+            action: none
+
+# =============================================================================
+# 電力モニターカード - スマートメーター対応
+# =============================================================================
+power_monitor_card:
+  type: vertical-stack
+  cards:
+    # 現在の消費電力(ゲージ)
+    - type: gauge
+      entity: sensor.smart_meter_power
+      name: 消費電力
+      min: 0
+      max: 6000
+      severity:
+        green: 0
+        yellow: 2000
+        red: 4000
+      needle: true
+      unit: W
+
+    # 電力使用状況
+    - type: entities
+      show_header_toggle: false
+      entities:
+        - type: custom:template-entity-row
+          entity: sensor.smart_meter_power
+          name: 使用状況
+          state: "{{ state_attr('sensor.smart_meter_power', 'status') }}"
+          secondary: "推定日次コスト: ¥{{ state_attr('sensor.smart_meter_power', 'estimated_daily_cost') }}"
+          icon: "{{ state_attr('sensor.smart_meter_power', 'usage_icon') }}"
+
+    # 累積電力量
+    - type: entity
+      entity: sensor.smart_meter_energy
+      name: 累積電力量
+      icon: mdi:counter
+
+# =============================================================================
+# シンプル電力カード - カスタムカード不要
+# =============================================================================
+simple_power_card:
+  type: entities
+  title: 電力モニター
+  show_header_toggle: false
+  entities:
+    - entity: sensor.smart_meter_power
+      name: 現在の消費電力
+      icon: mdi:flash
+    - entity: sensor.smart_meter_energy
+      name: 累積電力量
+      icon: mdi:counter
+
+# =============================================================================
+# 統合コントロールパネル - すべての機能を1枚に
+# =============================================================================
+unified_control_panel:
+  type: vertical-stack
+  cards:
+    # ヘッダー
+    - type: markdown
+      content: |
+        # 🎛️ Nature Remo コントロール
+        {{ now().strftime('%m/%d %H:%M') }}
+
+    # 環境センサー(コンパクト表示)
+    - type: glance
+      title: 環境
+      entities:
+        - entity: sensor.living_room_temperature
+          name: 温度
+        - entity: sensor.living_room_humidity
+          name: 湿度
+        - entity: sensor.living_room_illuminance
+          name: 照度
+      columns: 3
+
+    # エアコン制御
+    - type: tile
+      entity: climate.living_room_ac
+      name: エアコン
+      features:
+        - type: climate-hvac-modes
+        - type: target-temperature
+
+    # 照明制御
+    - type: horizontal-stack
+      cards:
+        - type: tile
+          entity: light.living_room_light
+          name: リビング
+          features:
+            - type: light-brightness
+
+        - type: tile
+          entity: light.bedroom_light
+          name: 寝室
+          features:
+            - type: light-brightness
+
+    # その他のデバイス
+    - type: glance
+      title: その他
+      entities:
+        - entity: switch.tv
+          name: TV
+        - entity: switch.fan
+          name: 扇風機
+        - entity: remote.living_room_remote
+          name: リモコン
+      show_state: true
+
+# =============================================================================
+# タブレット向けフルスクリーンダッシュボード
+# =============================================================================
+tablet_fullscreen_dashboard:
+  type: panel
+  cards:
+    - type: vertical-stack
+      cards:
+        # 時刻と環境情報
+        - type: markdown
+          content: |
+            # {{ now().strftime('%H:%M') }}
+            {{ now().strftime('%Y年%m月%d日 (%a)') }}
+          style: |
+            ha-card {
+              font-size: 2em;
+              text-align: center;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+            }
+
+        # 環境センサー(大きく表示)
+        - type: horizontal-stack
+          cards:
+            - type: sensor
+              entity: sensor.living_room_temperature
+              name: 温度
+              graph: line
+              detail: 2
+              style: |
+                ha-card {
+                  font-size: 1.5em;
+                }
+
+            - type: sensor
+              entity: sensor.living_room_humidity
+              name: 湿度
+              graph: line
+              detail: 2
+              style: |
+                ha-card {
+                  font-size: 1.5em;
+                }
+
+        # エアコン(大きく表示)
+        - type: thermostat
+          entity: climate.living_room_ac
+          name: エアコン
+          features:
+            - type: climate-hvac-modes
+            - type: target-temperature
+
+        # クイックアクション(大きなボタン)
+        - type: grid
+          columns: 2
+          square: false
+          cards:
+            - type: button
+              name: 冷房開始
+              icon: mdi:snowflake
+              icon_height: 64px
+              tap_action:
+                action: call-service
+                service: script.ac_cool_start
+              style: |
+                ha-card {
+                  font-size: 1.5em;
+                  height: 120px;
+                }
+
+            - type: button
+              name: 暖房開始
+              icon: mdi:fire
+              icon_height: 64px
+              tap_action:
+                action: call-service
+                service: script.ac_heat_start
+              style: |
+                ha-card {
+                  font-size: 1.5em;
+                  height: 120px;
+                }
+
+            - type: button
+              name: 照明ON
+              icon: mdi:lightbulb
+              icon_height: 64px
+              tap_action:
+                action: call-service
+                service: light.turn_on
+                target:
+                  entity_id: light.living_room_light
+              style: |
+                ha-card {
+                  font-size: 1.5em;
+                  height: 120px;
+                }
+
+            - type: button
+              name: 全てOFF
+              icon: mdi:power
+              icon_height: 64px
+              tap_action:
+                action: call-service
+                service: script.all_off
+              style: |
+                ha-card {
+                  font-size: 1.5em;
+                  height: 120px;
+                }
+
+# =============================================================================
+# ミニマルステータスカード - 省スペース表示
+# =============================================================================
+minimal_status_card:
+  type: markdown
+  content: |
+    ## 室内環境
+
+    <table width="100%">
+      <tr>
+        <td align="center">
+          <ha-icon icon="mdi:thermometer"></ha-icon><br>
+          <b>{{ states('sensor.living_room_temperature') }}°C</b><br>
+          <small>{{ state_attr('sensor.living_room_temperature', 'comfort_level') }}</small>
+        </td>
+        <td align="center">
+          <ha-icon icon="mdi:water-percent"></ha-icon><br>
+          <b>{{ states('sensor.living_room_humidity') }}%</b><br>
+          <small>{{ state_attr('sensor.living_room_humidity', 'comfort_level') }}</small>
+        </td>
+        <td align="center">
+          <ha-icon icon="mdi:brightness-6"></ha-icon><br>
+          <b>{{ states('sensor.living_room_illuminance') }} lx</b><br>
+          <small>{{ state_attr('sensor.living_room_illuminance', 'brightness_level') }}</small>
+        </td>
+      </tr>
+    </table>
+
+    ---
+
+    ### エアコン: {{ states('climate.living_room_ac') }}
+    {% if is_state('climate.living_room_ac', 'cool') or is_state('climate.living_room_ac', 'heat') %}
+    設定温度: {{ state_attr('climate.living_room_ac', 'temperature') }}°C
+    {% endif %}
+
+    {% if states('sensor.smart_meter_power') != 'unavailable' %}
+    ---
+
+    ### 電力: {{ states('sensor.smart_meter_power') }} W
+    {{ state_attr('sensor.smart_meter_power', 'status') }}
+    {% endif %}
+  style: |
+    ha-card {
+      font-size: 1.2em;
+    }
+
+# =============================================================================
+# 使用方法
+# =============================================================================
+#
+# 1. ダッシュボードの編集モードに入る
+# 2. カードを追加
+# 3. 手動カードを選択
+# 4. 上記のテンプレートをコピー&ペースト
+# 5. エンティティIDを自分の環境に合わせて変更
+# 6. 保存
+#
+# カスタムカードが必要なテンプレート:
+# - environment_monitor_card (template-entity-row が必要)
+# - power_monitor_card (template-entity-row が必要)
+#
+# カスタムカード不要のテンプレート:
+# - simple_environment_card
+# - ac_control_card
+# - simple_power_card
+# - unified_control_panel
+# - tablet_fullscreen_dashboard
+# - minimal_status_card
