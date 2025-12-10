@@ -12,6 +12,18 @@ This custom integration allows you to control Nature Remo devices and all connec
 - **Switch** - Control devices with on/off IR signals
 - **Light** - Control light appliances with brightness support
 
+### Dashboard Support for 7-10 Inch Tablets
+
+This integration includes **enhanced dashboard features** optimized for small tablet displays:
+
+- **Pre-configured Dashboard Templates** - Ready-to-use layouts for 7-10 inch tablets
+- **Enhanced Sensor Attributes** - Comfort levels, status indicators, and recommendations
+- **Visual Status Indicators** - Color-coded icons and status messages in Japanese
+- **Touch-Optimized Controls** - Large buttons and easy-to-tap controls
+- **Kiosk Mode Support** - Full-screen display for wall-mounted tablets
+
+See **[DASHBOARD_GUIDE.md](DASHBOARD_GUIDE.md)** for detailed setup instructions and examples.
+
 ### Capabilities
 
 - **Environment Monitoring**
@@ -128,6 +140,54 @@ target:
 data:
   brightness: 128
 ```
+
+## Dashboard Configuration
+
+This integration provides optimized dashboard layouts for **7-10 inch tablet displays**, perfect for wall-mounted control panels.
+
+### Quick Start
+
+1. Navigate to the `dashboard_examples` folder
+2. Choose a template:
+   - **`simple_tablet_dashboard.yaml`** - Simple layout, no custom cards required (recommended for beginners)
+   - **`tablet_dashboard.yaml`** - Advanced layout with graphs and multiple views
+   - **`card_templates.yaml`** - Individual card templates for custom dashboards
+
+3. Copy the YAML content and paste it into your Home Assistant dashboard
+4. Adjust entity IDs to match your devices
+
+### Enhanced Sensor Attributes
+
+All sensors include additional attributes for better dashboard display:
+
+**Temperature Sensor:**
+```yaml
+# Example attributes
+comfort_level: "快適"        # Comfort assessment
+comfort_icon: "mdi:emoticon-happy"
+comfort_color: "#2ecc71"
+```
+
+**Humidity Sensor:**
+```yaml
+# Example attributes
+comfort_level: "快適"
+recommendation: "最適な湿度です"
+```
+
+**Power Sensor (Smart Meter):**
+```yaml
+# Example attributes
+usage_level: "通常"
+estimated_daily_cost: 648.0   # Estimated daily cost in yen
+estimated_daily_kwh: 24.0     # Estimated daily energy in kWh
+```
+
+### Documentation
+
+For complete dashboard setup instructions, see:
+- **[DASHBOARD_GUIDE.md](DASHBOARD_GUIDE.md)** - Comprehensive guide with examples
+- **[dashboard_examples/README.md](dashboard_examples/README.md)** - Quick start guide
 
 ## API Endpoints Used
 
